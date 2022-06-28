@@ -184,7 +184,7 @@
       function getUser(){
           console.log('try to get Name');
           var data = player.getName();
-          unityI.SendMessage('YandexSDK', 'AuthenticateSuccess', data);
+          unityI.SendMessage('YandexSDK', 'AuthenticateCallback', data);
           console.log('getName done');
 
       }
@@ -194,7 +194,7 @@
               console.log('Data is getting');
               console.log(JSON.stringify(stats));
               GetLeaderBoard();
-              unityI.SendMessage('YandexSDK', 'DataGetting', JSON.stringify(stats));
+              unityI.SendMessage('YandexSDK', 'GetDataCallback', JSON.stringify(stats));
            });
       }
 
@@ -220,7 +220,7 @@
         callbacks: {
             onOpen: () => {},
             onRewarded: () => {
-                unityI.SendMessage('YandexSDK', 'RewardGetting');
+                unityI.SendMessage('YandexSDK', 'RewardedCallback');
                 console.log('Rewarded! Id: ' + id);},
             onClose: () => {},
             onError: (e) => {
