@@ -101,14 +101,14 @@
 
       loadingBar.style.display = "block";
 
-      var unityI = null;
+      var unityBridge = null;
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = 100 * progress + "%";
         }).then((unityInstance) => {
-          unityI = unityInstance;
+          unityBridge = unityInstance;
           loadingBar.style.display = "none";
           fullscreenButton.onclick = () => {
             unityInstance.SetFullscreen(1);
@@ -128,14 +128,12 @@
 
       YaGames.init({
         adv:{
-          onAdvClose: wasShown =>{console.info('adv closed!');
+          onAdvClose: wasShown => {console.info('adv closed!');
         }
       }
       })
         .then(ysdk => {
             sdk = ysdk;
-            sdk.adv.showFullscreenAdv({ callbacks: {} });
-            console.error('SDK DONE');
       });
 
       var lb;
@@ -156,11 +154,9 @@
           .then(lb => {lb.getLeaderboardEntries('LeaderBoard', { quantityTop: 10, includeUser: true, quantityAround: 3 }).then(res =>
             {
               console.log(res);
-              unityI.SendMessage('YandexSDK', 'BoardEntriesReady', JSON.stringify(res));});
+              unityBridge.SendMessage('YandexSDK', 'BoardEntriesReady', JSON.stringify(res));});
             });
       }
-
-
 
       function auth(){
         initPlayer().then(() =>{
@@ -173,38 +169,30 @@
           });
         }
 
-
       function initPlayer(){
-        console.log('InitPlayerTry')
         return sdk.getPlayer().then(_player => {
-                console.log('InitPlayer2');
                 player = _player;
             });}
 
       function getUser(){
-          console.log('try to get Name');
           var data = player.getName();
-          unityI.SendMessage('YandexSDK', 'AuthenticateSuccess', data);
-          console.log('getName done');
-
+          unityBridge.SendMessage('YandexSDK', 'AuthenticateCallback', data);
       }
 
-  function getUserData(){
-            player.getData().then(stats =>{
-              console.log('Data is getting');
-              console.log(JSON.stringify(stats));
-              GetLeaderBoard();
-              unityI.SendMessage('YandexSDK', 'DataGetting', JSON.stringify(stats));
-           });
-      }
+      function getUserData(){
+                player.getData().then(data =>{
+                  GetLeaderBoard();
+                  unityBridge.SendMessage('YandexSDK', 'GetDataCallback', JSON.stringify(data));
+               });
+          }
 
-  function setUserData(_data){
-      console.log('Try Save');
-      console.log(_data);
-      player.setData({data : _data}).then(()=>{
-        console.log('saved');
-      }).catch(()=>{console.log('unsaved')});
-    }
+      function setUserData(_data){
+          console.log('Try Save');
+          console.log(_data);
+          player.setData({data : _data}).then(()=>{
+            console.log('saved');
+          }).catch(()=>{console.log('unsaved')});
+        }
 
       function showFullscrenAd(){
         sdk.adv.showFullscreenAdv({
@@ -215,13 +203,12 @@
         })
       }
 
-     function showRewardedAd(id){
+      function showRewardedAd(id){
         sdk.adv.showRewardedVideo({
         callbacks: {
             onOpen: () => {},
             onRewarded: () => {
-                unityI.SendMessage('YandexSDK', 'RewardGetting');
-                console.log('Rewarded! Id: ' + id);},
+                unityBridge.SendMessage('YandexSDK', 'RewardedCallback');
             onClose: () => {},
             onError: (e) => {
                 var data = {"id" : id, "error" : error};
